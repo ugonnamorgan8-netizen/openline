@@ -182,10 +182,6 @@ export function App() {
   const loadReviewerData = async () => {
     if (!activeReviewer) return;
 
-    if (activeReviewer.role === 'admin') {
-      setCurrentView('admin_settings');
-      return;
-    }
     if (activeReviewer.role === 'action_owner') {
       setCurrentView('action_owner');
       return;
