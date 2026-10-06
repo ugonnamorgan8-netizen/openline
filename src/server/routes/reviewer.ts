@@ -57,6 +57,41 @@ router.post('/logout', (req, res) => {
   res.json({ success: true, message: 'Logged out' });
 });
 
+// Change own password (used on first login or when member wants to update)
+router.post('/change-password', reviewerAuthMiddleware, async (req: ReviewerRequest, res: Response) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'current_password and new_password are required' });
+    }
+    if (typeof new_password !== 'string' || new_password.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters' });
+    }
+
+    // Fetch current hash
+    const result = await query(`SELECT password_hash FROM reviewers WHERE id = $1`, [req.reviewer!.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Reviewer not found' });
+    }
+
+    const { verifyPassword, hashPassword } = await import('../crypto.js');
+    const valid = await verifyPassword(current_password, result.rows[0].password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const newHash = await hashPassword(new_password);
+    await query(`UPDATE reviewers SET password_hash = $1 WHERE id = $2`, [newHash, req.reviewer!.id]);
+
+    await logReviewerAudit(req.reviewer!.id, 'PASSWORD_CHANGED', null, { self: true });
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
 // Current Session Info
 router.get('/me', reviewerAuthMiddleware, (req: ReviewerRequest, res: Response) => {
   res.json({ reviewer: req.reviewer });

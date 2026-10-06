@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "seed": "tsx src/server/seed.ts",
+    "init-production": "tsx src/server/init-production.ts",
     "test": "tsx tests/test_suite.ts",
     "start": "tsx src/server/index.ts"
   },
