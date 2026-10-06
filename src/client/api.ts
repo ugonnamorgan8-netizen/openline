@@ -235,3 +235,10 @@ export async function purgeExpiredRetention() {
 export async function getAdminAuditLogs() {
   return fetchJson('/admin/audit-logs');
 }
+
+export async function changeReviewerPassword(current_password: string, new_password: string) {
+  return fetchJson('/reviewer/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}

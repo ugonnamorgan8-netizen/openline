@@ -125,7 +125,7 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
   };
 
   return (
-    <div style={{ flex: 1, padding: 'clamp(16px, 3.5vw, 40px)', overflowY: 'auto' }}>
+    <div className="workspace-main" style={{ padding: 'clamp(16px, 3.5vw, 40px)' }}>
       {/* Top Header matching Page 6 */}
       <div style={{
         display: 'flex',

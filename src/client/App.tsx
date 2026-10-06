@@ -40,11 +40,47 @@ import {
 
 export function App() {
   // Navigation View State
-  const [currentView, setCurrentView] = useState<
-    'landing' | 'new_feedback' | 'confirmation' | 'conversation' |
-    'reviewer_workspace' | 'reviewer_detail' | 'you_said_we_did' |
-    'reviewer_login' | 'admin_settings' | 'action_owner' | 'leadership_dashboard'
-  >('landing');
+  type AppView =
+    | 'landing'
+    | 'new_feedback'
+    | 'confirmation'
+    | 'conversation'
+    | 'reviewer_workspace'
+    | 'reviewer_detail'
+    | 'you_said_we_did'
+    | 'reviewer_login'
+    | 'admin_settings'
+    | 'action_owner'
+    | 'leadership_dashboard';
+
+  const [currentView, setCurrentView] = useState<AppView>('landing');
+  const [viewHistory, setViewHistory] = useState<AppView[]>([]);
+
+  const navigateTo = (nextView: AppView) => {
+    if (nextView === currentView) return;
+    setViewHistory(prev => [...prev, currentView]);
+    setCurrentView(nextView);
+  };
+
+  const goBack = () => {
+    setViewHistory(prev => {
+      if (prev.length === 0) {
+        if (activeReviewer) {
+          if (activeReviewer.role === 'admin') setCurrentView('admin_settings');
+          else if (activeReviewer.role === 'action_owner') setCurrentView('action_owner');
+          else if (activeReviewer.role === 'leadership_viewer') setCurrentView('leadership_dashboard');
+          else setCurrentView('reviewer_workspace');
+        } else {
+          setCurrentView('landing');
+        }
+        return [];
+      }
+      const newHist = [...prev];
+      const target = newHist.pop()!;
+      setCurrentView(target);
+      return newHist;
+    });
+  };
 
   // Modals
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -144,7 +180,7 @@ export function App() {
   const handleSubmissionSuccess = (data: { public_id: string; secret: string; category_name: string }) => {
     setLatestSubmission(data);
     setActiveSecret(data.secret);
-    setCurrentView('confirmation');
+    navigateTo('confirmation');
   };
 
   // Check a Response by Secret Code
@@ -157,7 +193,7 @@ export function App() {
         setActiveSecret(secret);
         setConversationData(res.conversation);
         setIsCheckResponseOpen(false);
-        setCurrentView('conversation');
+        navigateTo('conversation');
       }
     } catch (err: any) {
       setCheckSecretError(err.message || 'Invalid conversation secret');
@@ -222,7 +258,7 @@ export function App() {
       setDetailMessages(detail.messages || []);
       setDetailInternalNotes(detail.internal_notes || []);
       setDetailHistory(detail.history || []);
-      setCurrentView('reviewer_detail');
+      navigateTo('reviewer_detail');
     } catch (err: any) {
       alert(err.message || 'Failed to open feedback detail');
     }
@@ -246,6 +282,7 @@ export function App() {
     setActiveReviewer(reviewer);
     const listRes = await getReviewerList();
     setAllReviewers(listRes.reviewers || []);
+    setViewHistory(['landing']);
 
     if (reviewer.role === 'admin') {
       setCurrentView('admin_settings');
@@ -261,6 +298,7 @@ export function App() {
   const handleReviewerLogout = async () => {
     await reviewerLogout();
     setActiveReviewer(null);
+    setViewHistory([]);
     setCurrentView('landing');
   };
 
@@ -297,15 +335,15 @@ export function App() {
           <Navbar
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
             onOpenCheckResponse={() => setIsCheckResponseOpen(true)}
-            onNavigateHome={() => setCurrentView('landing')}
+            onNavigateHome={() => navigateTo('landing')}
             onOpenReviewerPortal={() => {
-              setCurrentView('reviewer_login');
+              navigateTo('reviewer_login');
             }}
             reviewerUser={activeReviewer}
           />
           <LandingPage
             onStartFeedback={() => {
-              setCurrentView('new_feedback');
+              navigateTo('new_feedback');
               if (categories.length === 0) {
                 getCategories()
                   .then(catRes => {
@@ -315,7 +353,7 @@ export function App() {
               }
             }}
             onCheckResponse={() => setIsCheckResponseOpen(true)}
-            onSeeWhatChanged={() => setCurrentView('you_said_we_did')}
+            onSeeWhatChanged={() => navigateTo('you_said_we_did')}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
             onVerifyAccessCode={handleVerifyAccess}
             isStaffVerified={isStaffVerified}
@@ -327,7 +365,7 @@ export function App() {
       {currentView === 'new_feedback' && (
         <FeedbackForm
           categories={categories}
-          onCancel={() => setCurrentView('landing')}
+          onCancel={goBack}
           onSubmitSuccess={handleSubmissionSuccess}
           onOpenPrivacy={() => setIsPrivacyOpen(true)}
           onSubmitFeedback={handleSubmitFeedback}
@@ -341,7 +379,7 @@ export function App() {
           secret={latestSubmission.secret}
           categoryName={latestSubmission.category_name}
           onGoToConversation={(secret) => handleOpenConversationBySecret(secret)}
-          onBackToHome={() => setCurrentView('landing')}
+          onBackToHome={() => navigateTo('landing')}
         />
       )}
 
@@ -350,7 +388,7 @@ export function App() {
         <AnonymousConversation
           secret={activeSecret}
           conversationData={conversationData}
-          onClose={() => setCurrentView('landing')}
+          onClose={goBack}
           onSendReply={async (secret, msg) => {
             const res = await replyToConversation(secret, msg);
             await handleRefreshConversation();
@@ -376,14 +414,14 @@ export function App() {
           sortOrder={reviewerSort}
           onSortChange={setReviewerSort}
           onSelectFeedback={handleSelectFeedback}
-          onNavigateUpdatesBoard={() => setCurrentView('you_said_we_did')}
-          onNavigateSettings={() => setCurrentView('admin_settings')}
-          onNavigateActions={() => setCurrentView('action_owner')}
-          onNavigateLeadership={() => setCurrentView('leadership_dashboard')}
+          onNavigateUpdatesBoard={() => navigateTo('you_said_we_did')}
+          onNavigateSettings={() => navigateTo('admin_settings')}
+          onNavigateActions={() => navigateTo('action_owner')}
+          onNavigateLeadership={() => navigateTo('leadership_dashboard')}
           onLogout={handleReviewerLogout}
           onSwitchReviewer={handleSwitchReviewer}
           allReviewers={allReviewers}
-          onBack={() => setCurrentView('reviewer_login')}
+          onBack={goBack}
         />
       )}
 
@@ -404,7 +442,7 @@ export function App() {
                 ].map(({ label, tab }) => (
                   <button
                     key={tab}
-                    onClick={() => { setReviewerTab(tab); setCurrentView('reviewer_workspace'); }}
+                    onClick={() => { setReviewerTab(tab); navigateTo('reviewer_workspace'); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '10px 14px', borderRadius: '10px',
@@ -420,7 +458,7 @@ export function App() {
             </div>
             {/* Back to workspace */}
             <button
-              onClick={() => setCurrentView('reviewer_workspace')}
+              onClick={goBack}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '10px 14px', borderRadius: '10px',
@@ -429,7 +467,7 @@ export function App() {
                 cursor: 'pointer',
               }}
             >
-              ← Back to Inbox
+              ← Back
             </button>
           </aside>
 
@@ -441,7 +479,7 @@ export function App() {
             internalNotes={detailInternalNotes}
             history={detailHistory}
             allReviewers={allReviewers}
-            onBack={() => setCurrentView('reviewer_workspace')}
+            onBack={goBack}
             onSendReply={async (msg) => {
               const res = await sendReviewerReply(feedbackDetail.public_id, msg);
               await refreshDetail();
@@ -488,26 +526,14 @@ export function App() {
       {currentView === 'you_said_we_did' && (
         <YouSaidWeDid
           updates={publicUpdates}
-          onBack={() => {
-            if (!activeReviewer) {
-              setCurrentView('landing');
-            } else if (activeReviewer.role === 'admin') {
-              setCurrentView('admin_settings');
-            } else if (activeReviewer.role === 'action_owner') {
-              setCurrentView('action_owner');
-            } else if (activeReviewer.role === 'leadership_viewer') {
-              setCurrentView('leadership_dashboard');
-            } else {
-              setCurrentView('reviewer_workspace');
-            }
-          }}
+          onBack={goBack}
         />
       )}
 
       {/* 8. Reviewer Login Portal */}
       {currentView === 'reviewer_login' && (
         <ReviewerLogin
-          onBack={() => setCurrentView('landing')}
+          onBack={goBack}
           onLoginSuccess={handleReviewerLoginSuccess}
           onLogin={reviewerLogin}
         />
@@ -517,9 +543,10 @@ export function App() {
       {currentView === 'admin_settings' && activeReviewer && (
         <AdminSettings
           reviewer={activeReviewer}
-          onBack={handleReviewerLogout}
-          onNavigateLeadership={() => setCurrentView('leadership_dashboard')}
-          onNavigateWorkspace={() => setCurrentView('reviewer_workspace')}
+          onBack={goBack}
+          onLogout={handleReviewerLogout}
+          onNavigateLeadership={() => navigateTo('leadership_dashboard')}
+          onNavigateWorkspace={() => navigateTo('reviewer_workspace')}
         />
       )}
 
@@ -527,7 +554,7 @@ export function App() {
       {currentView === 'action_owner' && activeReviewer && (
         <ActionOwnerWorkspace
           reviewer={activeReviewer}
-          onBack={handleReviewerLogout}
+          onBack={goBack}
         />
       )}
 
@@ -535,14 +562,8 @@ export function App() {
       {currentView === 'leadership_dashboard' && activeReviewer && (
         <LeadershipDashboard
           reviewer={activeReviewer}
-          onBack={() => {
-            if (activeReviewer.role === 'admin') {
-              setCurrentView('admin_settings');
-            } else {
-              setCurrentView('reviewer_workspace');
-            }
-          }}
-          onNavigateUpdatesBoard={() => setCurrentView('you_said_we_did')}
+          onBack={goBack}
+          onNavigateUpdatesBoard={() => navigateTo('you_said_we_did')}
         />
       )}
     </div>

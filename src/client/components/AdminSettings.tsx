@@ -10,7 +10,11 @@ import {
   FolderPlus,
   Users,
   Eye,
-  FileText
+  EyeOff,
+  FileText,
+  Lock,
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import {
   getAdminSettings,
@@ -21,12 +25,14 @@ import {
   updateAdminCategory,
   getAdminReviewers,
   purgeExpiredRetention,
-  getAdminAuditLogs
+  getAdminAuditLogs,
+  changeReviewerPassword
 } from '../api.js';
 
 interface AdminSettingsProps {
   reviewer: any;
   onBack: () => void;
+  onLogout?: () => void;
   onNavigateLeadership?: () => void;
   onNavigateWorkspace?: () => void;
 }
@@ -34,10 +40,12 @@ interface AdminSettingsProps {
 export const AdminSettings: React.FC<AdminSettingsProps> = ({
   reviewer,
   onBack,
+  onLogout,
   onNavigateLeadership,
   onNavigateWorkspace,
 }) => {
-  const [activeTab, setActiveTab] = useState<'access' | 'categories' | 'retention' | 'audit'>('access');
+  const isAdmin = reviewer?.role === 'admin';
+  const [activeTab, setActiveTab] = useState<'password' | 'access' | 'categories' | 'retention' | 'audit'>('password');
   const [newAccessCode, setNewAccessCode] = useState('');
   const [settings, setSettings] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -45,6 +53,17 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Password change form state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [pwdMessage, setPwdMessage] = useState<string | null>(null);
+  const [pwdError, setPwdError] = useState<string | null>(null);
 
   // New category form
   const [catName, setCatName] = useState('');
@@ -56,6 +75,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   }, [activeTab]);
 
   const loadData = async () => {
+    if (!isAdmin) return;
     try {
       if (activeTab === 'access' || activeTab === 'retention') {
         const sRes = await getAdminSettings();
@@ -71,6 +91,36 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load configuration');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdMessage(null);
+    setPwdError(null);
+    if (!currentPassword) {
+      setPwdError('Please enter your current password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwdError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdError('New password and confirmation do not match.');
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      await changeReviewerPassword(currentPassword, newPassword);
+      setPwdMessage('Password successfully updated! Keep your new password safe for your next login.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPwdError(err.message || 'Failed to update password.');
+    } finally {
+      setPwdLoading(false);
     }
   };
 
@@ -149,29 +199,46 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '24px clamp(16px, 4vw, 40px)', overflowX: 'hidden', boxSizing: 'border-box', width: '100%', maxWidth: '100vw' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+      {/* Sticky Header */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        backgroundColor: '#f8fafc',
+        paddingTop: '8px',
+        paddingBottom: '16px',
+        borderBottom: '1px solid #e2e8f0',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button
             onClick={onBack}
             aria-label="Back"
+            title="Go to previous page"
             style={{
-              padding: '6px',
+              padding: '8px',
               borderRadius: '8px',
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               display: 'flex',
               alignItems: 'center',
+              cursor: 'pointer',
+              color: '#334155'
             }}
           >
             <ArrowLeft size={18} />
           </button>
           <div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, color: '#0f172a' }}>
-              System Administration & Governance
+              {isAdmin ? 'System Administration & Governance' : 'Board Settings & Security'}
             </h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#64748b' }}>
-              Logged in as: {reviewer.name} ({reviewer.title}) • Role: System Administrator
+              Logged in as: {reviewer.name} ({reviewer.title}) • Role: {reviewer.role?.replace('_', ' ').toUpperCase()}
             </p>
           </div>
         </div>
@@ -195,25 +262,66 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
               Reviewer Workspace
             </button>
           )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                fontSize: '13px',
+                fontWeight: 600,
+                fontFamily: 'var(--font-controls)',
+                cursor: 'pointer',
+              }}
+              title="Logout"
+            >
+              <LogOut size={15} />
+              <span>Log Out</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Role Notice */}
-      <div style={{
-        backgroundColor: '#eef2ff',
-        border: '1px solid #c7d2fe',
-        borderRadius: '14px',
-        padding: '14px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        marginBottom: '28px',
-      }}>
-        <ShieldAlert size={20} color="#4f46e5" style={{ flexShrink: 0 }} />
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#3730a3', lineHeight: 1.45 }}>
-          <strong>Role Separation Enforced:</strong> As System Administrator, you manage accounts, access codes, categories, and retention policies. Per product security architecture, this role does not have application-level permission to view feedback message bodies.
-        </p>
-      </div>
+      {isAdmin ? (
+        <div style={{
+          backgroundColor: '#eef2ff',
+          border: '1px solid #c7d2fe',
+          borderRadius: '14px',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '28px',
+        }}>
+          <ShieldAlert size={20} color="#4f46e5" style={{ flexShrink: 0 }} />
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#3730a3', lineHeight: 1.45 }}>
+            <strong>Administrator Privileges:</strong> As System Administrator, you manage system security, staff access gates, categories, and retention policies. You can also update your personal board credentials below.
+          </p>
+        </div>
+      ) : (
+        <div style={{
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '14px',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '28px',
+        }}>
+          <ShieldCheck size={20} color="#15803d" style={{ flexShrink: 0 }} />
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#166534', lineHeight: 1.45 }}>
+            <strong>Executive Board Account:</strong> You are authenticated as an authorized board member. Use the form below to change your default temporary password to a personal secure password.
+          </p>
+        </div>
+      )}
 
       {message && (
         <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-body)' }}>
@@ -229,7 +337,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
       )}
 
-      {/* Admin Tabs */}
+      {/* Tabs */}
       <div style={{
         display: 'flex',
         gap: '20px',
@@ -240,61 +348,231 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         paddingBottom: '2px',
       }}>
         <button
-          onClick={() => setActiveTab('access')}
+          onClick={() => setActiveTab('password')}
           style={{
             paddingBottom: '12px',
             fontSize: '13.5px',
-            fontWeight: activeTab === 'access' ? 700 : 600,
-            color: activeTab === 'access' ? '#0f172a' : '#64748b',
-            borderBottom: activeTab === 'access' ? '2px solid #4f46e5' : 'none',
+            fontWeight: activeTab === 'password' ? 700 : 600,
+            color: activeTab === 'password' ? '#0f172a' : '#64748b',
+            borderBottom: activeTab === 'password' ? '2px solid #4f46e5' : 'none',
             fontFamily: 'var(--font-controls)',
             whiteSpace: 'nowrap',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
           }}
         >
-          Staff Access Gate
+          Change Password
         </button>
 
-        <button
-          onClick={() => setActiveTab('categories')}
-          style={{
-            paddingBottom: '12px',
-            fontSize: '13.5px',
-            fontWeight: activeTab === 'categories' ? 700 : 600,
-            color: activeTab === 'categories' ? '#0f172a' : '#64748b',
-            borderBottom: activeTab === 'categories' ? '2px solid #4f46e5' : 'none',
-            fontFamily: 'var(--font-controls)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Category Management
-        </button>
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => setActiveTab('access')}
+              style={{
+                paddingBottom: '12px',
+                fontSize: '13.5px',
+                fontWeight: activeTab === 'access' ? 700 : 600,
+                color: activeTab === 'access' ? '#0f172a' : '#64748b',
+                borderBottom: activeTab === 'access' ? '2px solid #4f46e5' : 'none',
+                fontFamily: 'var(--font-controls)',
+                whiteSpace: 'nowrap',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Staff Access Gate
+            </button>
 
-        <button
-          onClick={() => setActiveTab('retention')}
-          style={{
-            paddingBottom: '12px',
-            fontSize: '14px',
-            fontWeight: activeTab === 'retention' ? 700 : 500,
-            color: activeTab === 'retention' ? '#0f172a' : '#64748b',
-            borderBottom: activeTab === 'retention' ? '2px solid #4f46e5' : 'none',
-          }}
-        >
-          Retention & Governance
-        </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              style={{
+                paddingBottom: '12px',
+                fontSize: '13.5px',
+                fontWeight: activeTab === 'categories' ? 700 : 600,
+                color: activeTab === 'categories' ? '#0f172a' : '#64748b',
+                borderBottom: activeTab === 'categories' ? '2px solid #4f46e5' : 'none',
+                fontFamily: 'var(--font-controls)',
+                whiteSpace: 'nowrap',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Category Management
+            </button>
 
-        <button
-          onClick={() => setActiveTab('audit')}
-          style={{
-            paddingBottom: '12px',
-            fontSize: '14px',
-            fontWeight: activeTab === 'audit' ? 700 : 500,
-            color: activeTab === 'audit' ? '#0f172a' : '#64748b',
-            borderBottom: activeTab === 'audit' ? '2px solid #4f46e5' : 'none',
-          }}
-        >
-          Reviewer Audit Logs
-        </button>
+            <button
+              onClick={() => setActiveTab('retention')}
+              style={{
+                paddingBottom: '12px',
+                fontSize: '14px',
+                fontWeight: activeTab === 'retention' ? 700 : 500,
+                color: activeTab === 'retention' ? '#0f172a' : '#64748b',
+                borderBottom: activeTab === 'retention' ? '2px solid #4f46e5' : 'none',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Retention & Governance
+            </button>
+
+            <button
+              onClick={() => setActiveTab('audit')}
+              style={{
+                paddingBottom: '12px',
+                fontSize: '14px',
+                fontWeight: activeTab === 'audit' ? 700 : 500,
+                color: activeTab === 'audit' ? '#0f172a' : '#64748b',
+                borderBottom: activeTab === 'audit' ? '2px solid #4f46e5' : 'none',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Reviewer Audit Logs
+            </button>
+          </>
+        )}
       </div>
+
+      {/* TAB 0: Change Password */}
+      {activeTab === 'password' && (
+        <div style={{ maxWidth: '640px' }}>
+          <div className="card" style={{ marginBottom: '24px', padding: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5' }}>
+                <Key size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>Change Account Password</h3>
+                <p style={{ fontSize: '13px', color: '#64748b' }}>
+                  Update your board credentials. Minimum 8 characters required.
+                </p>
+              </div>
+            </div>
+
+            {pwdMessage && (
+              <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} />
+                <span>{pwdMessage}</span>
+              </div>
+            )}
+
+            {pwdError && (
+              <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#dc2626', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={16} />
+                <span>{pwdError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Current Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showCurrentPwd ? 'text' : 'password'}
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '11px 42px 11px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPwd(!showCurrentPwd)}
+                    style={{ position: 'absolute', right: '12px', top: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                  >
+                    {showCurrentPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  New Password (min 8 characters)
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showNewPwd ? 'text' : 'password'}
+                    placeholder="Enter new strong password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '11px 42px 11px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPwd(!showNewPwd)}
+                    style={{ position: 'absolute', right: '12px', top: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                  >
+                    {showNewPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Confirm New Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPwd ? 'text' : 'password'}
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '11px 42px 11px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                    style={{ position: 'absolute', right: '12px', top: '12px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                  >
+                    {showConfirmPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ paddingTop: '8px' }}>
+                <button
+                  type="submit"
+                  disabled={pwdLoading}
+                  className="btn-primary-pill"
+                  style={{ padding: '11px 28px', fontSize: '14px' }}
+                >
+                  {pwdLoading ? 'Updating Password...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: Staff Access Gate */}
       {activeTab === 'access' && (

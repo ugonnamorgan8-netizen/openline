@@ -18,9 +18,15 @@ import {
   BarChart3,
   Menu,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Key,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { changeReviewerPassword } from '../api.js';
 
 interface ReviewerWorkspaceProps {
   reviewer: any;
@@ -73,6 +79,47 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const itemsPerPage = 6;
 
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [pwdSuccess, setPwdSuccess] = useState<string | null>(null);
+  const [pwdError, setPwdError] = useState<string | null>(null);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdSuccess(null);
+    setPwdError(null);
+    if (!currentPassword) {
+      setPwdError('Please enter your current password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwdError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdError('New password and confirmation do not match.');
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      await changeReviewerPassword(currentPassword, newPassword);
+      setPwdSuccess('Password successfully updated! Keep your new password safe for your next login.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPwdError(err.message || 'Failed to change password.');
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   // Pagination slice
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = feedbackList.slice(startIndex, startIndex + itemsPerPage);
@@ -115,7 +162,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
           {onBack && (
             <button
               onClick={onBack}
-              aria-label="Back to Login"
+              aria-label="Back"
               style={{
                 color: '#ffffff',
                 padding: '6px 10px',
@@ -167,7 +214,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
           {onBack && (
             <button
               onClick={onBack}
-              aria-label="Back to Login"
+              aria-label="Back"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -195,7 +242,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
               }}
             >
               <ArrowLeft size={15} />
-              <span>← Back to Login</span>
+              <span>← Back</span>
             </button>
           )}
 
@@ -326,18 +373,27 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
               <span>Leadership Metrics</span>
             </button>
 
-            {/* Settings (Admin) */}
+            {/* Settings */}
             <button
-              onClick={onNavigateSettings}
+              onClick={() => {
+                onTabChange('settings');
+                setMobileMenuOpen(false);
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
                 padding: '10px 14px',
                 borderRadius: '10px',
-                color: '#94a3b8',
+                backgroundColor: currentTab === 'settings' ? '#1e293b' : 'transparent',
+                color: currentTab === 'settings' ? '#ffffff' : '#94a3b8',
                 fontWeight: 600,
                 fontSize: '14px',
+                cursor: 'pointer',
+                border: 'none',
+                width: '100%',
+                textAlign: 'left',
+                fontFamily: 'var(--font-controls)',
               }}
             >
               <Settings size={18} />
@@ -397,11 +453,228 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
 
       {/* Main Content Area */}
       <main className="workspace-main">
-        {/* Top bar with search and workspace title */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, color: '#0f172a' }}>
-            Reviewer Workspace
-          </h1>
+        {currentTab === 'settings' ? (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, color: '#0f172a' }}>
+                  Account & Security Settings
+                </h1>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#64748b' }}>
+                  Manage your credentials and security preferences as a designated board reviewer.
+                </p>
+              </div>
+
+              {reviewer.role === 'admin' && (
+                <button
+                  onClick={onNavigateSettings}
+                  className="btn-secondary-pill"
+                  style={{ fontFamily: 'var(--font-controls)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Settings size={16} />
+                  <span>Open System Admin Portal</span>
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '24px', alignItems: 'flex-start' }}>
+              {/* Change Password Card */}
+              <div className="card" style={{ padding: '28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5' }}>
+                    <Key size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>Change Password</h3>
+                    <p style={{ fontSize: '12.5px', color: '#64748b' }}>
+                      Minimum 8 characters. Enter current password to verify.
+                    </p>
+                  </div>
+                </div>
+
+                {pwdSuccess && (
+                  <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle2 size={16} />
+                    <span>{pwdSuccess}</span>
+                  </div>
+                )}
+
+                {pwdError && (
+                  <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fecaca', color: '#dc2626', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={16} />
+                    <span>{pwdError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '5px' }}>
+                      Current Password
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showCurrentPwd ? 'text' : 'password'}
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 38px 10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '13.5px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPwd(!showCurrentPwd)}
+                        style={{ position: 'absolute', right: '10px', top: '10px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                      >
+                        {showCurrentPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '5px' }}>
+                      New Password (min 8 characters)
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showNewPwd ? 'text' : 'password'}
+                        placeholder="Enter new password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 38px 10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '13.5px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPwd(!showNewPwd)}
+                        style={{ position: 'absolute', right: '10px', top: '10px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                      >
+                        {showNewPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '5px' }}>
+                      Confirm New Password
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showConfirmPwd ? 'text' : 'password'}
+                        placeholder="Re-enter new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 38px 10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '13.5px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                        style={{ position: 'absolute', right: '10px', top: '10px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                      >
+                        {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ paddingTop: '6px' }}>
+                    <button
+                      type="submit"
+                      disabled={pwdLoading}
+                      className="btn-primary-pill"
+                      style={{ padding: '10px 24px', fontSize: '13.5px', width: '100%' }}
+                    >
+                      {pwdLoading ? 'Updating Password...' : 'Update Password'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Profile Details Card */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="card" style={{ padding: '24px' }}>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginBottom: '14px' }}>
+                    Reviewer Profile
+                  </h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                    <img
+                      src={reviewer.avatar_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&fit=crop&q=80'}
+                      alt={reviewer.name}
+                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <p style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{reviewer.name}</p>
+                      <p style={{ fontSize: '12.5px', color: '#64748b' }}>{reviewer.title}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                      <span style={{ color: '#64748b' }}>Email:</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{reviewer.email}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                      <span style={{ color: '#64748b' }}>Department:</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{reviewer.department || 'Executive'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                      <span style={{ color: '#64748b' }}>Security Role:</span>
+                      <span style={{ fontWeight: 700, color: '#4f46e5' }}>{reviewer.role?.replace('_', ' ').toUpperCase()}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '2px' }}>
+                      <span style={{ color: '#64748b' }}>Status:</span>
+                      <span style={{ fontWeight: 600, color: '#15803d' }}>Active Authorized Reviewer</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#eef2ff',
+                  border: '1px solid #c7d2fe',
+                  borderRadius: '14px',
+                  padding: '16px 18px',
+                  display: 'flex',
+                  gap: '12px',
+                }}>
+                  <ShieldCheck size={20} color="#4f46e5" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#3730a3', marginBottom: '4px' }}>
+                      D'Creativs Confidentiality Protocol
+                    </p>
+                    <p style={{ fontSize: '12.5px', color: '#4338ca', lineHeight: 1.45 }}>
+                      All submissions are cryptographically isolated. Reviewers should change their default password to maintain internal privacy standards.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Top bar with search and workspace title */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, color: '#0f172a' }}>
+                Reviewer Workspace
+              </h1>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 240px', maxWidth: '380px' }}>
             <div style={{ position: 'relative', width: '100%' }}>
@@ -757,6 +1030,8 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
             </button>
           </div>
         )}
+        </>
+      )}
       </main>
     </div>
   );

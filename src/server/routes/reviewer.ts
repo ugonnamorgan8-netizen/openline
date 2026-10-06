@@ -114,13 +114,6 @@ router.get('/feedback', reviewerAuthMiddleware, async (req: ReviewerRequest, res
   try {
     const reviewer = req.reviewer!;
 
-    // Role check: Admins manage settings/accounts, not feedback message reading
-    if (reviewer.role === 'admin') {
-      return res.status(403).json({
-        error: 'System administrator role does not receive application-level access to feedback message contents. Please view Admin Settings.'
-      });
-    }
-
     // Role check: Action owner only views assigned improvement tasks
     if (reviewer.role === 'action_owner') {
       return res.status(403).json({
@@ -242,7 +235,7 @@ router.get('/feedback/:publicId', reviewerAuthMiddleware, async (req: ReviewerRe
     const reviewer = req.reviewer!;
     const { publicId } = req.params;
 
-    if (reviewer.role === 'admin' || reviewer.role === 'action_owner') {
+    if (reviewer.role === 'action_owner') {
       return res.status(403).json({ error: 'Unauthorized to view feedback details.' });
     }
 

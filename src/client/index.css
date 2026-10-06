@@ -819,7 +819,8 @@ a {
 
 .workspace-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: var(--color-bg);
   position: relative;
   width: 100%;
@@ -835,14 +836,24 @@ a {
   padding: 24px 16px;
   flex-shrink: 0;
   transition: all 0.25s ease;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.workspace-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .workspace-main {
   flex: 1;
   padding: 32px 40px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
   width: 100%;
+  height: 100vh;
 }
 
 .detail-grid-layout {
@@ -910,10 +921,17 @@ a {
 @media (max-width: 768px) {
   .workspace-layout {
     flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
   }
 
   .workspace-mobile-header {
     display: flex;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 80;
   }
 
   .workspace-sidebar {
@@ -922,6 +940,7 @@ a {
     left: 0;
     bottom: 0;
     width: 270px !important;
+    height: 100vh !important;
     z-index: 160;
     transform: translateX(-100%);
     box-shadow: 0 0 30px rgba(0,0,0,0.6);
@@ -937,6 +956,9 @@ a {
   }
 
   .workspace-main {
+    flex: 1;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
     padding: 20px 16px;
   }
 
