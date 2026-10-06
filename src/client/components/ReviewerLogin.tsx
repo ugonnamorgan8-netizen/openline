@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Lock, Mail, Key, UserCheck, Shield } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, Key, UserCheck, Shield, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface ReviewerLoginProps {
@@ -11,6 +11,7 @@ interface ReviewerLoginProps {
 export const ReviewerLogin: React.FC<ReviewerLoginProps> = ({ onBack, onLoginSuccess, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,18 +136,39 @@ export const ReviewerLogin: React.FC<ReviewerLoginProps> = ({ onBack, onLoginSuc
             <div style={{ position: 'relative' }}>
               <Key size={16} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '13px' }} />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '11px 14px 11px 40px',
+                  padding: '11px 42px 11px 40px',
                   borderRadius: '12px',
                   border: '1.5px solid #cbd5e1',
                   fontSize: '14px',
                 }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '11px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
