@@ -26,31 +26,48 @@ const __dirname = path.dirname(__filename);
 // ─────────────────────────────────────────────────────────────────────────────
 const REAL_BOARD_MEMBERS = [
   {
-    id: 'rev-admin-01',
-    name: 'Ugonna Morgan',
+    id: 'rev-akparanta-estella',
+    name: 'Akparanta Estella',
+    email: 'oluwakayodeella@gmail.com',
+    role: 'sensitive_reviewer' as const,
+    department: 'People & Culture',
+    title: 'CHRO',
+    temp_password: 'DCopenline_26',
+  },
+  {
+    id: 'rev-ndukwe-pleasant',
+    name: 'Ndukwe Pleasant',
+    email: 'xantspace.dev@gmail.com',
+    role: 'admin' as const,
+    department: 'Executive Leadership',
+    title: 'CEO',
+    temp_password: 'DCopenline_26',
+  },
+  {
+    id: 'rev-morgan-ugonna',
+    name: 'Morgan Ugonna',
     email: 'ugonnamorgan8@gmail.com',
     role: 'admin' as const,
-    department: 'Operations & IT',
-    title: 'System Administrator',
-    temp_password: 'OpenLine@2024!',
+    department: 'Executive Leadership',
+    title: 'COO',
+    temp_password: 'DCopenline_26',
   },
-  // Add more members here:
-  // {
-  //   id: 'rev-board-02',
-  //   name: 'Firstname Lastname',
-  //   email: 'email@domain.com',
-  //   role: 'sensitive_reviewer',
-  //   department: 'People & Culture',
-  //   title: 'HR Lead',
-  //   temp_password: 'OpenLine@2024!',
-  // },
+  {
+    id: 'rev-okoji-kingsley',
+    name: 'Okoji Kingsley',
+    email: 'kingsleyokoji91@gmail.com',
+    role: 'general_reviewer' as const,
+    department: 'Product & Engineering',
+    title: 'CPO',
+    temp_password: 'DCopenline_26',
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SET YOUR REAL STAFF ACCESS CODE
 // This is the code all staff type before submitting anonymous feedback.
 // ─────────────────────────────────────────────────────────────────────────────
-const STAFF_ACCESS_CODE = 'DCREATIVS2024';
+const STAFF_ACCESS_CODE = 'DCREATIVS2026';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -95,13 +112,18 @@ async function initProduction() {
   ];
 
   for (const c of categoriesData) {
+    const defaultReviewers = c.is_sensitive
+      ? JSON.stringify(['rev-akparanta-estella'])
+      : JSON.stringify(['rev-okoji-kingsley']);
     await query(`
       INSERT INTO categories (id, name, description, icon, is_sensitive, default_reviewer_ids, is_active, sort_order)
-      VALUES ($1, $2, $3, $4, $5, '[]'::jsonb, true, $6)
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, true, $7)
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name, description = EXCLUDED.description,
-        icon = EXCLUDED.icon, is_sensitive = EXCLUDED.is_sensitive, sort_order = EXCLUDED.sort_order
-    `, [c.id, c.name, c.description, c.icon, c.is_sensitive, c.sort_order]);
+        icon = EXCLUDED.icon, is_sensitive = EXCLUDED.is_sensitive,
+        default_reviewer_ids = EXCLUDED.default_reviewer_ids,
+        sort_order = EXCLUDED.sort_order
+    `, [c.id, c.name, c.description, c.icon, c.is_sensitive, defaultReviewers, c.sort_order]);
   }
   console.log(`  ${categoriesData.length} categories seeded`);
 

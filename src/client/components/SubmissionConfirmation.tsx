@@ -235,7 +235,7 @@ Visit OpenLine -> Click "Check a response" -> Enter your secret code.
 
       {/* Footer matching Page 3 */}
       <div style={{ marginTop: '60px', fontSize: '12px', color: '#94a3b8' }}>
-        © 2024 D’Creativs. Professional. Anonymous. Trustworthy.
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Professional. Anonymous. Trustworthy.
       </div>
     </div>
   );

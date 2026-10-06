@@ -202,7 +202,7 @@ export const YouSaidWeDid: React.FC<YouSaidWeDidProps> = ({ updates, onBack }) =
         fontSize: '12px',
         color: '#94a3b8',
       }}>
-        © 2024 D’Creativs OpenLine. Accountability through transparency.
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Accountability through transparency.
       </div>
     </div>
   );

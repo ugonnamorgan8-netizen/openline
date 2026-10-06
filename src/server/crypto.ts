@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
-const SECRET_SALT = process.env.SECRET_SALT || 'openline_dcreativs_salt_2024';
+const SECRET_SALT = process.env.SECRET_SALT || 'openline_dcreativs_salt_2026';
 
 /**
  * Generates a cryptographically strong private conversation secret with at least 128 bits of randomness.

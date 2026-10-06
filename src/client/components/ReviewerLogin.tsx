@@ -9,8 +9,8 @@ interface ReviewerLoginProps {
 }
 
 export const ReviewerLogin: React.FC<ReviewerLoginProps> = ({ onBack, onLoginSuccess, onLogin }) => {
-  const [email, setEmail] = useState('elena.vance@dcreativs.internal');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,11 +28,6 @@ export const ReviewerLogin: React.FC<ReviewerLoginProps> = ({ onBack, onLoginSuc
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickSelect = (rEmail: string) => {
-    setEmail(rEmail);
-    setPassword('Password123!');
   };
 
   return (
@@ -178,102 +173,13 @@ export const ReviewerLogin: React.FC<ReviewerLoginProps> = ({ onBack, onLoginSuc
           </button>
         </form>
 
-        {/* Quick Persona Demo Switcher */}
-        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#64748b', textTransform: 'uppercase', marginBottom: '10px' }}>
-            Quick Demo Sign-in (Pre-configured roles):
+        <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
+            Restricted access for authorized company reviewers and administrators only.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={() => handleQuickSelect('elena.vance@dcreativs.internal')}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: email === 'elena.vance@dcreativs.internal' ? '1.5px solid #4f46e5' : '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                fontSize: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span><strong>Elena Vance</strong> (HR Lead)</span>
-              <span style={{ color: '#4f46e5' }}>Sensitive Reviewer</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect('marcus.thorne@dcreativs.internal')}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: email === 'marcus.thorne@dcreativs.internal' ? '1.5px solid #4f46e5' : '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                fontSize: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span><strong>Marcus Thorne</strong> (Design Lead)</span>
-              <span style={{ color: '#4f46e5' }}>Sensitive Reviewer</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect('admin@dcreativs.internal')}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: email === 'admin@dcreativs.internal' ? '1.5px solid #4f46e5' : '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                fontSize: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span><strong>Amina Yusuf</strong> (Operations)</span>
-              <span style={{ color: '#059669' }}>System Admin</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect('david.chen@dcreativs.internal')}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: email === 'david.chen@dcreativs.internal' ? '1.5px solid #4f46e5' : '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                fontSize: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span><strong>David Chen</strong> (Studio Ops)</span>
-              <span style={{ color: '#d97706' }}>Action Owner</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect('sarah.miller@dcreativs.internal')}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: email === 'sarah.miller@dcreativs.internal' ? '1.5px solid #4f46e5' : '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                fontSize: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span><strong>Sarah Miller</strong> (Board)</span>
-              <span style={{ color: '#7c3aed' }}>Leadership Viewer</span>
-            </button>
-          </div>
+          <p style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '12px' }}>
+            © 2026 D’Creativs OpenLine • A product of D’Creativs.
+          </p>
         </div>
       </div>
     </div>

@@ -147,6 +147,18 @@ export const LeadershipDashboard: React.FC<LeadershipDashboardProps> = ({
           ))}
         </div>
       </div>
+
+      <footer style={{
+        marginTop: '60px',
+        padding: '24px 0',
+        textAlign: 'center',
+        borderTop: '1px solid #e2e8f0',
+        fontSize: '12px',
+        color: '#94a3b8',
+        fontFamily: 'var(--font-body)',
+      }}>
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Executive Governance.
+      </footer>
     </div>
   );
 };

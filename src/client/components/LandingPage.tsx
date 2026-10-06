@@ -376,33 +376,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
-                fontSize: '10.5px',
-                fontWeight: 700,
-                letterSpacing: '0.8px',
+                fontSize: '11px',
+                fontWeight: 600,
                 color: '#94a3b8',
-                textTransform: 'uppercase',
               }}>
-                Ask your lead for the current code
+                Please ask your team lead or HR for the official staff access code
               </span>
-              <span style={{ color: '#cbd5e1', fontSize: '10px' }}>·</span>
-              <button
-                type="button"
-                onClick={() => setAccessCode('DCREATIVS2024')}
-                style={{
-                  fontSize: '11px',
-                  color: '#6366f1',
-                  background: 'none',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
-              >
-                Try: DCREATIVS2024
-              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Page Footer */}
+      <footer style={{
+        marginTop: '60px',
+        padding: '32px 20px',
+        textAlign: 'center',
+        borderTop: '1px solid rgba(226, 232, 240, 0.7)',
+        fontSize: '12.5px',
+        color: '#94a3b8',
+        fontFamily: 'var(--font-body)',
+      }}>
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Professional. Anonymous. Trustworthy.
+      </footer>
     </div>
   );
 };

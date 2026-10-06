@@ -521,7 +521,9 @@ export function App() {
       {currentView === 'admin_settings' && activeReviewer && (
         <AdminSettings
           reviewer={activeReviewer}
-          onBack={() => setCurrentView('reviewer_login')}
+          onBack={handleReviewerLogout}
+          onNavigateLeadership={() => setCurrentView('leadership_dashboard')}
+          onNavigateWorkspace={() => setCurrentView('reviewer_workspace')}
         />
       )}
 
@@ -529,7 +531,7 @@ export function App() {
       {currentView === 'action_owner' && activeReviewer && (
         <ActionOwnerWorkspace
           reviewer={activeReviewer}
-          onBack={() => setCurrentView('reviewer_login')}
+          onBack={handleReviewerLogout}
         />
       )}
 
@@ -537,7 +539,13 @@ export function App() {
       {currentView === 'leadership_dashboard' && activeReviewer && (
         <LeadershipDashboard
           reviewer={activeReviewer}
-          onBack={() => setCurrentView('reviewer_login')}
+          onBack={() => {
+            if (activeReviewer.role === 'admin') {
+              setCurrentView('admin_settings');
+            } else {
+              setCurrentView('reviewer_workspace');
+            }
+          }}
           onNavigateUpdatesBoard={() => setCurrentView('you_said_we_did')}
         />
       )}

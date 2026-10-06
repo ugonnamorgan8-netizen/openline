@@ -27,9 +27,16 @@ import {
 interface AdminSettingsProps {
   reviewer: any;
   onBack: () => void;
+  onNavigateLeadership?: () => void;
+  onNavigateWorkspace?: () => void;
 }
 
-export const AdminSettings: React.FC<AdminSettingsProps> = ({ reviewer, onBack }) => {
+export const AdminSettings: React.FC<AdminSettingsProps> = ({
+  reviewer,
+  onBack,
+  onNavigateLeadership,
+  onNavigateWorkspace,
+}) => {
   const [activeTab, setActiveTab] = useState<'access' | 'categories' | 'retention' | 'audit'>('access');
   const [newAccessCode, setNewAccessCode] = useState('');
   const [settings, setSettings] = useState<any>(null);
@@ -167,6 +174,27 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ reviewer, onBack }
               Logged in as: {reviewer.name} ({reviewer.title}) • Role: System Administrator
             </p>
           </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {onNavigateLeadership && (
+            <button
+              onClick={onNavigateLeadership}
+              className="btn-secondary-pill"
+              style={{ fontFamily: 'var(--font-controls)', fontSize: '13px' }}
+            >
+              Leadership Insights
+            </button>
+          )}
+          {onNavigateWorkspace && (
+            <button
+              onClick={onNavigateWorkspace}
+              className="btn-secondary-pill"
+              style={{ fontFamily: 'var(--font-controls)', fontSize: '13px' }}
+            >
+              Reviewer Workspace
+            </button>
+          )}
         </div>
       </div>
 
@@ -518,6 +546,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ reviewer, onBack }
           </div>
         </div>
       )}
+
+      <footer style={{
+        marginTop: '60px',
+        padding: '24px 0',
+        textAlign: 'center',
+        borderTop: '1px solid #e2e8f0',
+        fontSize: '12px',
+        color: '#94a3b8',
+        fontFamily: 'var(--font-body)',
+      }}>
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Administrative Console.
+      </footer>
     </div>
   );
 };

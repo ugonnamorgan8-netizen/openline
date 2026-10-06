@@ -409,27 +409,27 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({
                     checked={routingChoice === ''}
                     onChange={() => setRoutingChoice('')}
                   />
-                  Default (Both Elena Vance & Marcus Thorne)
+                  Default: Confidential HR Review (Akparanta Estella — CHRO)
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                   <input
                     type="radio"
                     name="routing_choice"
-                    value="rev-elena"
-                    checked={routingChoice === 'rev-elena'}
-                    onChange={() => setRoutingChoice('rev-elena')}
+                    value="rev-akparanta-estella"
+                    checked={routingChoice === 'rev-akparanta-estella'}
+                    onChange={() => setRoutingChoice('rev-akparanta-estella')}
                   />
-                  Elena Vance Only (HR Lead)
+                  Akparanta Estella Only (CHRO — People & Culture)
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                   <input
                     type="radio"
                     name="routing_choice"
-                    value="rev-marcus"
-                    checked={routingChoice === 'rev-marcus'}
-                    onChange={() => setRoutingChoice('rev-marcus')}
+                    value="rev-morgan-ugonna"
+                    checked={routingChoice === 'rev-morgan-ugonna'}
+                    onChange={() => setRoutingChoice('rev-morgan-ugonna')}
                   />
-                  Marcus Thorne Only (Design Lead)
+                  Executive Board Route Only (Morgan Ugonna — COO)
                 </label>
               </div>
             </div>
@@ -550,6 +550,10 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({
           </button>
         </div>
       </form>
+
+      <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid #e2e8f0', textAlign: 'center', fontSize: '12px', color: '#94a3b8' }}>
+        © 2026 D’Creativs OpenLine • A product of D’Creativs. Professional. Anonymous. Trustworthy.
+      </div>
     </div>
   );
 };

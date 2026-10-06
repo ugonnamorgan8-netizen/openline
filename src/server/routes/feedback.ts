@@ -122,15 +122,23 @@ router.post('/submit', submissionRateLimiter, async (req: Request, res: Response
 
     // Determine reviewer assignment
     const defaultReviewers: string[] = category.default_reviewer_ids || [];
-    let assignedReviewerId = defaultReviewers[0] || 'rev-elena';
+    let assignedReviewerId = defaultReviewers[0];
+    if (!assignedReviewerId) {
+      const fallbackQuery = isSensitive
+        ? await query(`SELECT id FROM reviewers WHERE role = 'sensitive_reviewer' AND is_active = true LIMIT 1`)
+        : await query(`SELECT id FROM reviewers WHERE role IN ('general_reviewer', 'admin') AND is_active = true LIMIT 1`);
+      assignedReviewerId = fallbackQuery.rows[0]?.id;
+    }
     const excludedReviewers: string[] = [];
 
-    if (isSensitive && routing_choice && defaultReviewers.includes(routing_choice)) {
-      assignedReviewerId = routing_choice;
-      // Exclude the other designated sensitive reviewer to protect sender if there's a conflict
-      for (const rId of defaultReviewers) {
-        if (rId !== routing_choice) {
-          excludedReviewers.push(rId);
+    if (isSensitive && routing_choice) {
+      const checkReviewer = await query(`SELECT id FROM reviewers WHERE id = $1 AND is_active = true`, [routing_choice]);
+      if (checkReviewer.rows.length > 0) {
+        assignedReviewerId = routing_choice;
+        for (const rId of defaultReviewers) {
+          if (rId !== routing_choice) {
+            excludedReviewers.push(rId);
+          }
         }
       }
     }

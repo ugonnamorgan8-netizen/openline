@@ -15,7 +15,7 @@ export async function seedDatabase() {
   await query(schemaSql);
 
   // 1. Settings & Access Code
-  const accessCodeHash = await hashPassword('DCREATIVS2024');
+  const accessCodeHash = await hashPassword('DCREATIVS2026');
   await query(`
     INSERT INTO retention_settings (id, general_retention_days, sensitive_retention_days, min_reporting_threshold, staff_access_code_hash, updated_at)
     VALUES (1, 180, 90, 5, $1, NOW())
