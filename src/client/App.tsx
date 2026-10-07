@@ -301,11 +301,7 @@ export function App() {
                   })
                   .catch(() => {});
               }
-              if (isStaffVerified) {
-                navigateTo('new_feedback');
-              } else {
-                navigateTo('staff_access');
-              }
+              navigateTo('staff_access');
             }}
             onSeeWhatChanged={() => navigateTo('you_said_we_did')}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
