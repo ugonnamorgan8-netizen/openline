@@ -4,7 +4,6 @@ import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   onOpenPrivacy: () => void;
-  onOpenCheckResponse: () => void;
   onNavigateHome: () => void;
   onOpenReviewerPortal: () => void;
   reviewerUser?: any;
@@ -12,7 +11,6 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenPrivacy,
-  onOpenCheckResponse,
   onNavigateHome,
   onOpenReviewerPortal,
   reviewerUser,
@@ -84,35 +82,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Shield size={15} />
             <span className="hide-mobile">Privacy</span>
-          </button>
-
-          <button
-            onClick={onOpenCheckResponse}
-            title="Check a response using your secret code"
-            style={{
-              color: '#475569',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'none',
-              padding: '7px 10px',
-              borderRadius: '8px',
-              transition: 'all 0.15s ease',
-              fontFamily: 'var(--font-controls)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = 'rgba(79,70,229,0.06)';
-              e.currentTarget.style.color = '#4f46e5';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#475569';
-            }}
-          >
-            <KeyRound size={15} />
-            <span className="hide-mobile">Check response</span>
           </button>
 
           <button

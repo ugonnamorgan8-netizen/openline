@@ -162,8 +162,7 @@ router.get('/feedback', reviewerAuthMiddleware, async (req: ReviewerRequest, res
 
     // Tab filters
     if (tab === 'unread') {
-      // Unread: items where status is 'New' or reviewer hasn't responded yet
-      baseQuery += ` AND (f.status = 'New' OR (SELECT COUNT(*) FROM conversation_messages cm WHERE cm.feedback_id = f.id AND cm.sender_type = 'reviewer') = 0)`;
+      baseQuery += ` AND f.status = 'New'`;
     } else if (tab === 'assigned') {
       baseQuery += ` AND f.assigned_reviewer_id = $${params.length + 1}`;
       params.push(reviewer.id);
@@ -196,8 +195,8 @@ router.get('/feedback', reviewerAuthMiddleware, async (req: ReviewerRequest, res
     const statsQuery = `
       SELECT
         COUNT(*) as total_count,
-        COUNT(CASE WHEN f.status = 'New' OR (SELECT COUNT(*) FROM conversation_messages cm WHERE cm.feedback_id = f.id AND cm.sender_type = 'reviewer') = 0 THEN 1 END) as unread_count,
-        COUNT(CASE WHEN (SELECT COUNT(*) FROM conversation_messages cm WHERE cm.feedback_id = f.id AND cm.sender_type = 'reviewer') = 0 AND f.status != 'Closed' THEN 1 END) as awaiting_response_count,
+        COUNT(CASE WHEN f.status = 'New' THEN 1 END) as unread_count,
+        COUNT(CASE WHEN f.status = 'In Review' THEN 1 END) as awaiting_response_count,
         COUNT(CASE WHEN f.created_at < NOW() - INTERVAL '3 days' AND f.status NOT IN ('Resolved', 'Closed') THEN 1 END) as overdue_count,
         COUNT(CASE WHEN f.created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_this_week_count
       FROM feedback f
@@ -327,63 +326,9 @@ router.get('/feedback/:publicId', reviewerAuthMiddleware, async (req: ReviewerRe
   }
 });
 
-// Reply to anonymous sender (Page 6 - REPLY TO SENDER)
-router.post('/feedback/:publicId/reply', reviewerAuthMiddleware, async (req: ReviewerRequest, res: Response) => {
-  try {
-    const reviewer = req.reviewer!;
-    const { publicId } = req.params;
-    const { message } = req.body;
-
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return res.status(400).json({ error: 'Reply message cannot be empty' });
-    }
-
-    const fbRes = await query(`SELECT id, is_sensitive, excluded_reviewer_ids FROM feedback WHERE public_id = $1`, [publicId]);
-    if (fbRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Feedback not found' });
-    }
-    const fb = fbRes.rows[0];
-
-    if (fb.is_sensitive && reviewer.role === 'general_reviewer') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    if ((fb.excluded_reviewer_ids || []).includes(reviewer.id)) {
-      return res.status(403).json({ error: 'Excluded from this item' });
-    }
-
-    // Insert reviewer reply
-    const msgInsert = await query(`
-      INSERT INTO conversation_messages (feedback_id, sender_type, author_id, body, created_at)
-      VALUES ($1, 'reviewer', $2, $3, NOW())
-      RETURNING id, sender_type, author_id, body, created_at;
-    `, [fb.id, reviewer.id, message.trim()]);
-
-    // Update feedback updated_at and move to 'In Review' if 'New'
-    await query(`
-      UPDATE feedback
-      SET updated_at = NOW(),
-          status = CASE WHEN status = 'New' THEN 'In Review' ELSE status END
-      WHERE id = $1
-    `, [fb.id]);
-
-    // Log audit event without message body!
-    await logReviewerAudit(reviewer.id, 'REPLY_SENT', fb.id, {
-      message_id: msgInsert.rows[0].id
-    });
-
-    res.json({
-      success: true,
-      message: {
-        ...msgInsert.rows[0],
-        reviewer_name: reviewer.name,
-        reviewer_title: reviewer.title,
-        reviewer_avatar: reviewer.avatar_url
-      }
-    });
-  } catch (error) {
-    console.error('Error posting reviewer reply:', error);
-    res.status(500).json({ error: 'Failed to post reply' });
-  }
+// Reply to anonymous sender (Disabled by system policy - Zero Response Policy)
+router.post('/feedback/:publicId/reply', reviewerAuthMiddleware, async (_req: ReviewerRequest, res: Response) => {
+  return res.status(403).json({ error: 'Direct responses to submitters are disabled by system policy.' });
 });
 
 // Add Internal Note (Page 6 - INTERNAL NOTE)

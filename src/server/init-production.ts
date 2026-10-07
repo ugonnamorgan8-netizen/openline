@@ -29,18 +29,9 @@ const REAL_BOARD_MEMBERS = [
     id: 'rev-akparanta-estella',
     name: 'Akparanta Estella',
     email: 'oluwakayodeella@gmail.com',
-    role: 'sensitive_reviewer' as const,
+    role: 'admin' as const,
     department: 'People & Culture',
     title: 'CHRO',
-    temp_password: 'DCopenline_26',
-  },
-  {
-    id: 'rev-ndukwe-pleasant',
-    name: 'Ndukwe Pleasant',
-    email: 'xantspace.dev@gmail.com',
-    role: 'admin' as const,
-    department: 'Executive Leadership',
-    title: 'CEO',
     temp_password: 'DCopenline_26',
   },
   {
@@ -50,15 +41,6 @@ const REAL_BOARD_MEMBERS = [
     role: 'admin' as const,
     department: 'Executive Leadership',
     title: 'COO',
-    temp_password: 'DCopenline_26',
-  },
-  {
-    id: 'rev-okoji-kingsley',
-    name: 'Okoji Kingsley',
-    email: 'kingsleyokoji91@gmail.com',
-    role: 'general_reviewer' as const,
-    department: 'Product & Engineering',
-    title: 'CPO',
     temp_password: 'DCopenline_26',
   },
 ];
@@ -114,7 +96,7 @@ async function initProduction() {
   for (const c of categoriesData) {
     const defaultReviewers = c.is_sensitive
       ? JSON.stringify(['rev-akparanta-estella'])
-      : JSON.stringify(['rev-okoji-kingsley']);
+      : JSON.stringify(['rev-morgan-ugonna']);
     await query(`
       INSERT INTO categories (id, name, description, icon, is_sensitive, default_reviewer_ids, is_active, sort_order)
       VALUES ($1, $2, $3, $4, $5, $6::jsonb, true, $7)

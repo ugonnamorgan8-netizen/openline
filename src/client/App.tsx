@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar.js';
 import { PrivacyModal } from './components/PrivacyModal.js';
-import { CheckResponseModal } from './components/CheckResponseModal.js';
 import { LandingPage } from './components/LandingPage.js';
+import { StaffAccessPage } from './components/StaffAccessPage.js';
 import { FeedbackForm } from './components/FeedbackForm.js';
 import { SubmissionConfirmation } from './components/SubmissionConfirmation.js';
-import { AnonymousConversation } from './components/AnonymousConversation.js';
 import { ReviewerWorkspace } from './components/ReviewerWorkspace.js';
 import { ReviewerDetail } from './components/ReviewerDetail.js';
 import { YouSaidWeDid } from './components/YouSaidWeDid.js';
@@ -20,8 +19,6 @@ import {
   checkStaffAccess,
   getCategories,
   submitFeedback,
-  accessConversation,
-  replyToConversation,
   getPublicUpdates,
   reviewerLogin,
   reviewerLogout,
@@ -29,7 +26,6 @@ import {
   getReviewerList,
   getReviewerFeedback,
   getReviewerFeedbackDetail,
-  sendReviewerReply,
   addInternalNote,
   updateFeedbackStatus,
   assignReviewer,
@@ -42,9 +38,9 @@ export function App() {
   // Navigation View State
   type AppView =
     | 'landing'
+    | 'staff_access'
     | 'new_feedback'
     | 'confirmation'
-    | 'conversation'
     | 'reviewer_workspace'
     | 'reviewer_detail'
     | 'you_said_we_did'
@@ -84,9 +80,6 @@ export function App() {
 
   // Modals
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [isCheckResponseOpen, setIsCheckResponseOpen] = useState(false);
-  const [checkSecretLoading, setCheckSecretLoading] = useState(false);
-  const [checkSecretError, setCheckSecretError] = useState<string | null>(null);
 
   // Staff Access Gate State
   const [isStaffVerified, setIsStaffVerified] = useState(false);
@@ -94,8 +87,6 @@ export function App() {
   // Anonymous Flow State
   const [categories, setCategories] = useState<any[]>([]);
   const [latestSubmission, setLatestSubmission] = useState<{ public_id: string; secret: string; category_name: string } | null>(null);
-  const [activeSecret, setActiveSecret] = useState<string>('');
-  const [conversationData, setConversationData] = useState<any>(null);
 
   // "You Said, We Did" Updates
   const [publicUpdates, setPublicUpdates] = useState<any[]>([]);
@@ -179,39 +170,7 @@ export function App() {
 
   const handleSubmissionSuccess = (data: { public_id: string; secret: string; category_name: string }) => {
     setLatestSubmission(data);
-    setActiveSecret(data.secret);
     navigateTo('confirmation');
-  };
-
-  // Check a Response by Secret Code
-  const handleOpenConversationBySecret = async (secret: string) => {
-    setCheckSecretLoading(true);
-    setCheckSecretError(null);
-    try {
-      const res = await accessConversation(secret);
-      if (res.success) {
-        setActiveSecret(secret);
-        setConversationData(res.conversation);
-        setIsCheckResponseOpen(false);
-        navigateTo('conversation');
-      }
-    } catch (err: any) {
-      setCheckSecretError(err.message || 'Invalid conversation secret');
-    } finally {
-      setCheckSecretLoading(false);
-    }
-  };
-
-  const handleRefreshConversation = async () => {
-    if (!activeSecret) return;
-    try {
-      const res = await accessConversation(activeSecret);
-      if (res.success) {
-        setConversationData(res.conversation);
-      }
-    } catch (err) {
-      console.error('Refresh error:', err);
-    }
   };
 
   // Load Reviewer Workspace Data
@@ -319,13 +278,6 @@ export function App() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Global Modals */}
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
-      <CheckResponseModal
-        isOpen={isCheckResponseOpen}
-        onClose={() => setIsCheckResponseOpen(false)}
-        onSubmitSecret={handleOpenConversationBySecret}
-        isLoading={checkSecretLoading}
-        error={checkSecretError}
-      />
 
       {/* VIEW ROUTING */}
 
@@ -334,7 +286,6 @@ export function App() {
         <>
           <Navbar
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
-            onOpenCheckResponse={() => setIsCheckResponseOpen(true)}
             onNavigateHome={() => navigateTo('landing')}
             onOpenReviewerPortal={() => {
               navigateTo('reviewer_login');
@@ -343,7 +294,6 @@ export function App() {
           />
           <LandingPage
             onStartFeedback={() => {
-              navigateTo('new_feedback');
               if (categories.length === 0) {
                 getCategories()
                   .then(catRes => {
@@ -351,14 +301,35 @@ export function App() {
                   })
                   .catch(() => {});
               }
+              if (isStaffVerified) {
+                navigateTo('new_feedback');
+              } else {
+                navigateTo('staff_access');
+              }
             }}
-            onCheckResponse={() => setIsCheckResponseOpen(true)}
             onSeeWhatChanged={() => navigateTo('you_said_we_did')}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
-            onVerifyAccessCode={handleVerifyAccess}
-            isStaffVerified={isStaffVerified}
           />
         </>
+      )}
+
+      {/* 1b. Staff Access Gate Page */}
+      {currentView === 'staff_access' && (
+        <StaffAccessPage
+          onBack={goBack}
+          onVerified={() => {
+            setIsStaffVerified(true);
+            if (categories.length === 0) {
+              getCategories()
+                .then(catRes => {
+                  if (catRes?.categories) setCategories(catRes.categories);
+                })
+                .catch(() => {});
+            }
+            navigateTo('new_feedback');
+          }}
+          onVerifyAccessCode={handleVerifyAccess}
+        />
       )}
 
       {/* 2. New Feedback Form (PDF Page 2) */}
@@ -376,25 +347,8 @@ export function App() {
       {currentView === 'confirmation' && latestSubmission && (
         <SubmissionConfirmation
           publicId={latestSubmission.public_id}
-          secret={latestSubmission.secret}
           categoryName={latestSubmission.category_name}
-          onGoToConversation={(secret) => handleOpenConversationBySecret(secret)}
           onBackToHome={() => navigateTo('landing')}
-        />
-      )}
-
-      {/* 4. Anonymous Follow-up Conversation (PDF Page 4) */}
-      {currentView === 'conversation' && (
-        <AnonymousConversation
-          secret={activeSecret}
-          conversationData={conversationData}
-          onClose={goBack}
-          onSendReply={async (secret, msg) => {
-            const res = await replyToConversation(secret, msg);
-            await handleRefreshConversation();
-            return res;
-          }}
-          onRefresh={handleRefreshConversation}
         />
       )}
 
@@ -480,11 +434,6 @@ export function App() {
             history={detailHistory}
             allReviewers={allReviewers}
             onBack={goBack}
-            onSendReply={async (msg) => {
-              const res = await sendReviewerReply(feedbackDetail.public_id, msg);
-              await refreshDetail();
-              return res;
-            }}
             onAddInternalNote={async (note) => {
               const res = await addInternalNote(feedbackDetail.public_id, note);
               await refreshDetail();

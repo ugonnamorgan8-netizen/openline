@@ -92,9 +92,9 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
             <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <Lock size={18} color="#4f46e5" style={{ flexShrink: 0, marginTop: '3px' }} />
               <div>
-                <strong style={{ color: '#0f172a' }}>128-Bit Private Conversation Secret:</strong>
+                <strong style={{ color: '#0f172a' }}>Zero-Response Privacy Model:</strong>
                 <p style={{ color: '#64748b', fontSize: '13px' }}>
-                  After submitting, you receive a cryptographically generated 128-bit secret (e.g. <code>7K2-XM9-P4L</code>). Only its secure hash is stored on our server. Keep this code safe; there is no identity-based recovery.
+                  To eliminate any chance of communication correlation or identity discovery, OpenLine uses a one-way confidential submission pipeline. No response channels or reply threads are opened.
                 </p>
               </div>
             </div>

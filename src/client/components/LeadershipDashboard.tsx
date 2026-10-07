@@ -73,7 +73,7 @@ export const LeadershipDashboard: React.FC<LeadershipDashboardProps> = ({
       }}>
         <Shield size={22} color="#4f46e5" style={{ flexShrink: 0 }} />
         <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#3730a3', lineHeight: 1.5 }}>
-          <strong>Small Team Privacy Safeguard:</strong> CEO, COO, and Board titles do not grant automatic access to private unredacted reports.
+          <strong>Small Team Privacy Safeguard:</strong> Executive and Board titles do not grant automatic access to private unredacted reports.
           To protect confidentiality across D'Creativs, exact timestamps, submitter identities, and aggregate categories with fewer than {metrics?.min_threshold || 5} responses are suppressed.
         </p>
       </div>

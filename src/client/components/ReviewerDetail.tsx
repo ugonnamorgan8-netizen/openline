@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   Paperclip,
   Smile,
-  AlertCircle
+  AlertCircle,
+  Shield
 } from 'lucide-react';
 
 interface ReviewerDetailProps {
@@ -23,7 +24,7 @@ interface ReviewerDetailProps {
   history: any[];
   allReviewers: any[];
   onBack: () => void;
-  onSendReply: (message: string) => Promise<any>;
+  onSendReply?: (message: string) => Promise<any>;
   onAddInternalNote: (note: string) => Promise<any>;
   onUpdateStatus: (status: string, reason?: string) => Promise<any>;
   onAssignReviewer: (reviewerId: string) => Promise<any>;
@@ -48,7 +49,6 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
   onCreateAction,
   onPublishUpdate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'reply' | 'internal_note'>('reply');
   const [inputText, setInputText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -79,11 +79,7 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
     setIsSubmitting(true);
     setActionError(null);
     try {
-      if (activeTab === 'reply') {
-        await onSendReply(inputText.trim());
-      } else {
-        await onAddInternalNote(inputText.trim());
-      }
+      await onAddInternalNote(inputText.trim());
       setInputText('');
     } catch (err: any) {
       setActionError(err.message || 'Action failed');
@@ -187,7 +183,7 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
             style={{ fontSize: '13px', padding: '9px 18px', borderRadius: '9999px', fontFamily: 'var(--font-controls)', cursor: 'pointer' }}
           >
             <XCircle size={16} />
-            <span>Close Conversation</span>
+            <span>Close Feedback</span>
           </button>
         </div>
       </div>
@@ -213,89 +209,73 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
 
       {/* Two-Column Responsive Layout */}
       <div className="detail-grid-layout" style={{ gap: 'clamp(20px, 3vw, 36px)' }}>
-        {/* Left Column: Messages Thread & Composer */}
+        {/* Left Column: Feedback Submission & Internal Note Composer */}
         <div>
-          {/* Thread messages */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '36px' }}>
-            {messages.map((msg) => {
-              const isSender = msg.sender_type === 'sender';
-              return (
-                <div key={msg.id} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  {/* Avatar */}
-                  {isSender ? (
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: '#f1f5f9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#94a3b8',
-                      flexShrink: 0,
-                    }}>
-                      🏛️
-                    </div>
-                  ) : (
-                    <img
-                      src={msg.reviewer_avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&fit=crop&q=80'}
-                      alt={msg.reviewer_name}
-                      style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                    />
-                  )}
+          {/* Feedback Submission Content */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '20px',
+            padding: 'clamp(20px, 4vw, 28px)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+            marginBottom: '20px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#64748b', textTransform: 'uppercase', fontFamily: 'var(--font-controls)' }}>
+                ANONYMOUS SUBMISSION • {feedbackItem.created_at ? formatDate(feedbackItem.created_at).toUpperCase() : ''}
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', backgroundColor: '#ecfdf5', padding: '3px 8px', borderRadius: '6px' }}>
+                IDENTITY PROTECTED
+              </span>
+            </div>
 
-                  {/* Message bubble & meta */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {isSender ? (
-                      <div>
-                        <div style={{
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '16px',
-                          padding: 'clamp(14px, 3vw, 20px) clamp(16px, 3vw, 22px)',
-                          fontSize: '14.5px',
-                          color: '#0f172a',
-                          lineHeight: 1.6,
-                          marginBottom: '6px',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                          fontFamily: 'var(--font-body)',
-                          wordBreak: 'break-word',
-                        }}>
-                          {msg.body}
-                        </div>
-                        <p style={{ fontFamily: 'var(--font-controls)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.8px', color: '#94a3b8', textTransform: 'uppercase' }}>
-                          ANONYMOUS STAFF • {formatDate(msg.created_at).toUpperCase()}
-                        </p>
-                      </div>
-                    ) : (
-                      /* Reviewer Reply dark bubble */
-                      <div>
-                        <div style={{
-                          backgroundColor: '#0f172a',
-                          borderRadius: '16px',
-                          padding: 'clamp(14px, 3vw, 20px) clamp(16px, 3vw, 22px)',
-                          fontSize: '14.5px',
-                          color: '#ffffff',
-                          lineHeight: 1.6,
-                          marginBottom: '6px',
-                          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.12)',
-                          fontFamily: 'var(--font-body)',
-                          wordBreak: 'break-word',
-                        }}>
-                          {msg.body}
-                        </div>
-                        <p style={{ fontFamily: 'var(--font-controls)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.8px', color: '#94a3b8', textTransform: 'uppercase' }}>
-                          {msg.reviewer_name?.toUpperCase()} ({msg.reviewer_title?.toUpperCase() || 'REVIEWER'}) • {formatDate(msg.created_at).toUpperCase()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            <div style={{
+              fontSize: '15px',
+              color: '#0f172a',
+              lineHeight: 1.65,
+              fontFamily: 'var(--font-body)',
+              wordBreak: 'break-word',
+            }}>
+              {feedbackItem.message}
+            </div>
+
+            {feedbackItem.suggested_improvement && (
+              <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                marginTop: '18px',
+              }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'var(--font-controls)' }}>
+                  SUGGESTED IMPROVEMENT:
+                </p>
+                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.5, margin: 0, fontFamily: 'var(--font-body)' }}>
+                  {feedbackItem.suggested_improvement}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Response Composer matching Page 6 */}
+          {/* Zero Response Policy Safeguard Notice */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '24px',
+            fontSize: '12.5px',
+            color: '#64748b',
+            fontFamily: 'var(--font-body)',
+          }}>
+            <Shield size={16} color="#6366f1" style={{ flexShrink: 0 }} />
+            <span>Direct replies to submitters are completely disabled by system policy to guarantee 100% submitter anonymity.</span>
+          </div>
+
+          {/* Internal Note Composer */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '16px',
@@ -303,62 +283,22 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
             padding: 'clamp(16px, 3vw, 24px)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
           }}>
-            {/* Tabs: REPLY TO SENDER | INTERNAL NOTE */}
-            <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setActiveTab('reply')}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  color: activeTab === 'reply' ? '#4f46e5' : '#94a3b8',
-                  paddingBottom: '12px',
-                  marginBottom: '-13px',
-                  borderBottom: activeTab === 'reply' ? '2px solid #4f46e5' : 'none',
-                  fontFamily: 'var(--font-controls)',
-                  cursor: 'pointer',
-                  background: 'none',
-                  border: 'none',
-                }}
-              >
-                REPLY TO SENDER
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('internal_note')}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  color: activeTab === 'internal_note' ? '#4f46e5' : '#94a3b8',
-                  paddingBottom: '12px',
-                  marginBottom: '-13px',
-                  borderBottom: activeTab === 'internal_note' ? '2px solid #4f46e5' : 'none',
-                  fontFamily: 'var(--font-controls)',
-                  cursor: 'pointer',
-                  background: 'none',
-                  border: 'none',
-                }}
-              >
-                INTERNAL NOTE
-              </button>
+            <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '14px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#4f46e5', fontFamily: 'var(--font-controls)' }}>
+                ADD INTERNAL NOTE (REVIEWERS ONLY)
+              </span>
             </div>
 
-            {/* Input area */}
             <form onSubmit={handleSend}>
               <textarea
                 rows={4}
-                placeholder={activeTab === 'reply' ? 'Compose your response...' : 'Add an internal note visible only to reviewers...'}
+                placeholder="Add an internal note visible only to reviewers..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 style={{
                   width: '100%',
                   border: 'none',
-                  fontSize: '14.5px',
+                  fontSize: '14px',
                   color: '#0f172a',
                   lineHeight: 1.5,
                   resize: 'none',
@@ -368,26 +308,21 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
                 }}
               />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: '12px', color: '#94a3b8' }}>
-                  <Paperclip size={18} style={{ cursor: 'pointer' }} />
-                  <Smile size={18} style={{ cursor: 'pointer' }} />
-                </div>
-
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <button
                   type="submit"
                   disabled={isSubmitting || !inputText.trim()}
                   className="btn-primary-pill"
                   style={{
-                    padding: '10px 24px',
-                    fontSize: '13.5px',
+                    padding: '9px 22px',
+                    fontSize: '13px',
                     fontFamily: 'var(--font-controls)',
                     opacity: isSubmitting || !inputText.trim() ? 0.6 : 1,
                     cursor: isSubmitting || !inputText.trim() ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  <Send size={15} />
-                  <span>{activeTab === 'reply' ? 'Send Reply' : 'Add Note'}</span>
+                  <Send size={14} />
+                  <span>Add Note</span>
                 </button>
               </div>
             </form>
@@ -660,9 +595,9 @@ export const ReviewerDetail: React.FC<ReviewerDetailProps> = ({
       {showCloseModal && (
         <div className="modal-overlay" onClick={() => setShowCloseModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', width: '92%' }}>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Close Conversation</h3>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Close Feedback</h3>
             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px', fontFamily: 'var(--font-body)' }}>
-              Closing marks this thread as finished. Provide a concise explanation for the sender and internal history.
+              Closing marks this feedback item as resolved. Provide a concise explanation for internal audit history.
             </p>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px', fontFamily: 'var(--font-controls)' }}>

@@ -1,54 +1,26 @@
 import React, { useState } from 'react';
-import { Check, Copy, Download, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { BrandLogo } from './BrandLogo';
+import { Check, Copy, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { BrandLogo } from './BrandLogo.js';
 
 interface SubmissionConfirmationProps {
   publicId: string;
-  secret: string;
+  secret?: string;
   categoryName: string;
-  onGoToConversation: (secret: string) => void;
+  onGoToConversation?: (secret: string) => void;
   onBackToHome: () => void;
 }
 
 export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
   publicId,
-  secret,
   categoryName,
-  onGoToConversation,
   onBackToHome,
 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(secret);
+    navigator.clipboard.writeText(publicId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownload = () => {
-    const content = `D'Creativs OpenLine - Private Conversation Secret
-------------------------------------------------
-Topic/Category: ${categoryName}
-Public Tracking Reference: ${publicId}
-Your Private Conversation Secret: ${secret}
-
-Date: ${new Date().toLocaleDateString()}
-
-KEEP THIS SECRET PRIVATE.
-Anyone with this secret code can view and reply to this conversation.
-OpenLine does not store your name or account, and this secret CANNOT be recovered if lost.
-
-To check responses:
-Visit OpenLine -> Click "Check a response" -> Enter your secret code.
-`;
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `openline-secret-${secret.replace(/[^a-zA-Z0-9]/g, '')}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -60,7 +32,7 @@ Visit OpenLine -> Click "Check a response" -> Enter your secret code.
       minHeight: 'calc(100vh - 80px)',
       padding: '24px clamp(16px, 4vw, 24px) 60px',
       textAlign: 'center',
-      maxWidth: '680px',
+      maxWidth: '640px',
       margin: '0 auto',
       width: '100%',
     }}>
@@ -71,8 +43,8 @@ Visit OpenLine -> Click "Check a response" -> Enter your secret code.
 
       {/* Success Green Check Circle */}
       <div style={{
-        width: '48px',
-        height: '48px',
+        width: '56px',
+        height: '56px',
         borderRadius: '50%',
         backgroundColor: '#10b981',
         display: 'flex',
@@ -80,19 +52,19 @@ Visit OpenLine -> Click "Check a response" -> Enter your secret code.
         justifyContent: 'center',
         color: '#ffffff',
         marginBottom: '20px',
-        boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
+        boxShadow: '0 8px 20px rgba(16, 185, 129, 0.28)',
       }}>
-        <Check size={26} strokeWidth={3} />
+        <Check size={30} strokeWidth={3} />
       </div>
 
       {/* Title & Subtitle */}
       <h1 style={{
         fontFamily: 'var(--font-heading)',
-        fontSize: 'clamp(24px, 5vw, 32px)',
+        fontSize: 'clamp(24px, 5vw, 34px)',
         fontWeight: 800,
         color: '#0f172a',
         letterSpacing: '-0.8px',
-        marginBottom: '10px',
+        marginBottom: '12px',
       }}>
         Feedback Submitted
       </h1>
@@ -101,142 +73,128 @@ Visit OpenLine -> Click "Check a response" -> Enter your secret code.
         fontSize: '15px',
         color: '#64748b',
         maxWidth: '520px',
-        lineHeight: 1.5,
+        lineHeight: 1.6,
         marginBottom: '32px',
       }}>
-        Your message has been sent to the reviewers. To read their response, you will need the secret code below.
+        Your anonymous message has been securely submitted to executive leadership (CHRO &amp; COO) for confidential review. Thank you for sharing your perspective.
       </p>
 
-      {/* Dark Secret Card matching Page 3 */}
+      {/* Reference ID Card */}
       <div style={{
         width: '100%',
-        maxWidth: '520px',
-        backgroundColor: '#0a0f1d',
-        borderRadius: '24px',
-        padding: 'clamp(24px, 5vw, 36px) clamp(16px, 4vw, 28px)',
-        color: '#ffffff',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
-        marginBottom: '24px',
+        maxWidth: '480px',
+        backgroundColor: '#ffffff',
+        borderRadius: '20px',
+        border: '1.5px solid #e2e8f0',
+        padding: '24px 28px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+        marginBottom: '20px',
+        textAlign: 'center',
       }}>
         <p style={{
           fontSize: '11px',
           fontWeight: 700,
-          letterSpacing: '1.2px',
-          color: '#94a3b8',
+          letterSpacing: '1px',
+          color: '#64748b',
           textTransform: 'uppercase',
-          marginBottom: '16px',
+          marginBottom: '8px',
           fontFamily: 'var(--font-heading)',
         }}>
-          PRIVATE CONVERSATION SECRET
+          SUBMISSION REFERENCE ID • {categoryName?.toUpperCase()}
         </p>
 
         <div style={{
-          fontSize: 'clamp(24px, 6vw, 40px)',
-          fontFamily: 'var(--font-mono)',
-          fontWeight: 700,
-          letterSpacing: '2px',
-          color: '#ffffff',
-          marginBottom: '24px',
-          userSelect: 'all',
-          wordBreak: 'break-all',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
+          marginTop: '6px',
+          marginBottom: '8px',
         }}>
-          {secret}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '28px',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            color: '#0f172a',
+          }}>
+            {publicId}
+          </span>
           <button
             onClick={handleCopy}
+            title="Copy Reference ID"
+            aria-label="Copy Reference ID"
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              padding: '9px 20px',
-              borderRadius: '9999px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f8fafc',
+              color: copied ? '#10b981' : '#475569',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
           >
-            {copied ? <CheckCircle2 size={16} color="#10b981" /> : <Copy size={16} />}
-            <span>{copied ? 'Copied!' : 'Copy'}</span>
-          </button>
-
-          <button
-            onClick={handleDownload}
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              padding: '9px 20px',
-              borderRadius: '9999px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
-          >
-            <Download size={16} />
-            <span>Download</span>
+            {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
           </button>
         </div>
+
+        <p style={{
+          fontSize: '12px',
+          color: '#94a3b8',
+          margin: 0,
+          fontFamily: 'var(--font-body)',
+        }}>
+          {copied ? 'Copied to clipboard!' : 'Keep this reference code for your personal records.'}
+        </p>
       </div>
 
-      {/* Warning Alert Banner matching Page 3 */}
+      {/* Privacy Guarantee Notice */}
       <div style={{
         width: '100%',
-        maxWidth: '520px',
-        backgroundColor: '#f8fafc',
-        border: '1px solid #e2e8f0',
+        maxWidth: '480px',
+        backgroundColor: '#f0fdf4',
+        border: '1px solid #bbf7d0',
         borderRadius: '16px',
         padding: '16px 20px',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: '12px',
         textAlign: 'left',
         marginBottom: '32px',
       }}>
-        <AlertTriangle size={20} color="#6366f1" style={{ flexShrink: 0 }} />
-        <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.4 }}>
-          Keep this private. Anyone with this code can access your conversation. We cannot recover it if you lose it.
+        <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <p style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '12.5px',
+          color: '#166534',
+          lineHeight: 1.5,
+          margin: 0,
+        }}>
+          <strong>Zero Response Policy:</strong> To protect your identity completely, no response channels or reply threads are opened. Your voice has been heard, without compromising your privacy.
         </p>
       </div>
 
-      {/* Navigation Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%', maxWidth: '380px' }}>
-        <button
-          onClick={() => onGoToConversation(secret)}
-          className="btn-primary-pill"
-          style={{ width: '100%', padding: '14px', fontSize: '15px' }}
-        >
-          Go to conversation
-        </button>
-
-        <button
-          onClick={onBackToHome}
-          style={{
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#64748b',
-            background: 'none',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#0f172a')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
-        >
-          Back to home
-        </button>
-      </div>
-
-      {/* Footer matching Page 3 */}
-      <div style={{ marginTop: '60px', fontSize: '12px', color: '#94a3b8' }}>
-        © 2026 D’Creativs OpenLine • A product of D’Creativs. Professional. Anonymous. Trustworthy.
-      </div>
+      {/* Back to Home Button */}
+      <button
+        onClick={onBackToHome}
+        className="btn-primary-pill"
+        style={{
+          fontFamily: 'var(--font-controls)',
+          fontSize: '15px',
+          padding: '13px 40px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+        }}
+      >
+        <span>Return to Home</span>
+        <ArrowRight size={16} />
+      </button>
     </div>
   );
 };

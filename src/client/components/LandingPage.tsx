@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, ArrowRight, CheckCircle2, Lock, Zap, Eye, MessageSquare, AlertCircle } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle2, Lock, Zap, Eye } from 'lucide-react';
 
 interface LandingPageProps {
   onStartFeedback: () => void;
-  onCheckResponse: () => void;
   onSeeWhatChanged: () => void;
   onOpenPrivacy: () => void;
-  onVerifyAccessCode: (code: string) => Promise<boolean>;
-  isStaffVerified: boolean;
 }
 
 const TRUST_ITEMS = [
@@ -17,63 +14,17 @@ const TRUST_ITEMS = [
   { icon: Zap, label: 'Instant delivery' },
 ];
 
-
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartFeedback,
-  onCheckResponse,
   onSeeWhatChanged,
   onOpenPrivacy,
-  onVerifyAccessCode,
-  isStaffVerified,
 }) => {
-  const [accessCode, setAccessCode] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [accessError, setAccessError] = useState<string | null>(null);
-  const [accessSuccess, setAccessSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
-
-  const handleAccessSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!accessCode.trim()) return;
-
-    setIsVerifying(true);
-    setAccessError(null);
-    try {
-      const ok = await onVerifyAccessCode(accessCode.trim());
-      if (ok) {
-        setAccessSuccess(true);
-        setTimeout(() => {
-          setIsVerifying(false);
-          onStartFeedback();
-        }, 300);
-      } else {
-        setAccessError('Invalid access code. Please check with your team lead.');
-        setIsVerifying(false);
-      }
-    } catch (err: any) {
-      setAccessError(err.message || 'Verification failed');
-      setIsVerifying(false);
-    }
-  };
-
-  const handleShareClick = () => {
-    if (isStaffVerified || accessSuccess) {
-      onStartFeedback();
-    } else {
-      const input = document.getElementById('staff-access-input') as HTMLInputElement | null;
-      if (input) {
-        input.focus();
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else {
-        onStartFeedback();
-      }
-    }
-  };
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden', minHeight: 'calc(100vh - 120px)' }}>
@@ -155,7 +106,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '14px',
+            gap: '16px',
             width: '100%',
             opacity: mounted ? 1 : 0,
             transform: mounted ? 'translateY(0)' : 'translateY(12px)',
@@ -164,33 +115,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         >
           <button
             id="share-feedback-btn"
-            onClick={handleShareClick}
+            onClick={onStartFeedback}
             className="btn-primary-pill"
             style={{
               fontFamily: 'var(--font-controls)',
               fontSize: '15.5px',
-              padding: '14px 42px',
+              padding: '14px 44px',
               minWidth: 'min(260px, 100%)',
               animation: 'pulse-glow 3s ease-in-out infinite',
+              cursor: 'pointer',
             }}
           >
             <span>Share feedback</span>
             <ArrowRight size={16} />
           </button>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
-            <button
-              onClick={onCheckResponse}
-              className="btn-secondary-pill"
-              style={{ fontFamily: 'var(--font-controls)', fontSize: '13.5px' }}
-            >
-              <MessageSquare size={14} color="#64748b" />
-              <span>Check a response</span>
-            </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
             <button
               onClick={onSeeWhatChanged}
               className="btn-secondary-pill"
-              style={{ fontFamily: 'var(--font-controls)', fontSize: '13.5px' }}
+              style={{ fontFamily: 'var(--font-controls)', fontSize: '13.5px', cursor: 'pointer' }}
             >
               <CheckCircle2 size={14} color="#64748b" />
               <span>See what changed</span>
@@ -207,9 +151,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               fontWeight: 600,
               color: '#6366f1',
               background: 'none',
+              border: 'none',
               marginTop: '4px',
               fontFamily: 'var(--font-controls)',
               transition: 'opacity 0.15s ease',
+              cursor: 'pointer',
             }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
             onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
@@ -226,8 +172,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             gap: 'clamp(12px, 3vw, 24px)',
             flexWrap: 'wrap',
             justifyContent: 'center',
-            marginTop: '40px',
-            padding: '14px 20px',
+            marginTop: '48px',
+            padding: '16px 24px',
             background: 'rgba(255,255,255,0.75)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
@@ -259,137 +205,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           ))}
         </div>
-
-
-        {/* Staff Access Code section */}
-        <div
-          style={{
-            marginTop: '42px',
-            width: '100%',
-            maxWidth: '480px',
-            opacity: mounted ? 1 : 0,
-            transition: 'opacity 0.55s ease 0.55s',
-          }}
-        >
-          <div style={{
-            padding: 'clamp(20px, 4vw, 28px)',
-            background: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(226,232,240,0.9)',
-            borderRadius: '20px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
-            textAlign: 'left',
-          }}>
-            <h3 style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#0f172a',
-              marginBottom: '4px',
-            }}>
-              First time here?
-            </h3>
-            <p style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '13px',
-              color: '#64748b',
-              marginBottom: '16px',
-            }}>
-              Enter the shared staff access code to begin.
-            </p>
-
-            <form onSubmit={handleAccessSubmit} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <input
-                id="staff-access-input"
-                type="text"
-                placeholder="Access code"
-                value={accessCode}
-                onChange={e => setAccessCode(e.target.value)}
-                style={{
-                  flex: '1 1 200px',
-                  padding: '11px 16px',
-                  borderRadius: '12px',
-                  border: accessError
-                    ? '1.5px solid #ef4444'
-                    : accessSuccess
-                    ? '1.5px solid #10b981'
-                    : '1.5px solid #e2e8f0',
-                  backgroundColor: '#ffffff',
-                  fontSize: '14px',
-                  fontFamily: 'var(--font-controls)',
-                  color: '#0f172a',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                  outline: 'none',
-                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                }}
-                onFocus={e => {
-                  if (!accessError && !accessSuccess) {
-                    e.currentTarget.style.borderColor = '#6366f1';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                  }
-                }}
-                onBlur={e => {
-                  if (!accessError && !accessSuccess) {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)';
-                  }
-                }}
-              />
-              <button
-                type="submit"
-                disabled={isVerifying || accessSuccess}
-                className="btn-dark"
-                style={{
-                  flex: '0 0 auto',
-                  padding: '11px 20px',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontFamily: 'var(--font-controls)',
-                  whiteSpace: 'nowrap',
-                  opacity: isVerifying ? 0.8 : 1,
-                  backgroundColor: accessSuccess ? '#10b981' : undefined,
-                }}
-              >
-                {isVerifying
-                  ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Verifying</>
-                  : accessSuccess
-                  ? <><CheckCircle2 size={14} /> Verified</>
-                  : 'Continue'}
-              </button>
-            </form>
-
-            {accessError && (
-              <p style={{
-                color: '#ef4444',
-                fontSize: '12px',
-                marginTop: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                animation: 'fadeIn 0.2s ease',
-              }}>
-                <AlertCircle size={13} />
-                {accessError}
-              </p>
-            )}
-
-            <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: '#94a3b8',
-              }}>
-                Please ask your team lead or HR for the official staff access code
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Page Footer */}
       <footer style={{
-        marginTop: '60px',
+        marginTop: '40px',
         padding: '32px 20px',
         textAlign: 'center',
         borderTop: '1px solid rgba(226, 232, 240, 0.7)',

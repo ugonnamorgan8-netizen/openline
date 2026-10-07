@@ -722,7 +722,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
           <div className="card" style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', color: '#64748b', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-heading)' }}>
-                AWAITING RESPONSE
+                IN REVIEW
               </p>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
                 {String(stats.awaiting_response).padStart(2, '0')}
