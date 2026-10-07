@@ -32,6 +32,7 @@ const REAL_BOARD_MEMBERS = [
     role: 'admin' as const,
     department: 'People & Culture',
     title: 'CHRO',
+    avatar_url: '/avatars/chro-avatar.png',
     temp_password: 'DCopenline_26',
   },
   {
@@ -41,6 +42,7 @@ const REAL_BOARD_MEMBERS = [
     role: 'admin' as const,
     department: 'Executive Leadership',
     title: 'COO',
+    avatar_url: '/avatars/coo-avatar.png',
     temp_password: 'DCopenline_26',
   },
 ];
@@ -130,8 +132,8 @@ async function initProduction() {
   for (const member of REAL_BOARD_MEMBERS) {
     const hash = await hashPassword(member.temp_password);
     await query(`
-      INSERT INTO reviewers (id, name, email, password_hash, role, department, title, mfa_enabled, is_active, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, true, true, NOW())
+      INSERT INTO reviewers (id, name, email, password_hash, role, department, title, avatar_url, mfa_enabled, is_active, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, true, NOW())
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         email = EXCLUDED.email,
@@ -139,8 +141,9 @@ async function initProduction() {
         role = EXCLUDED.role,
         department = EXCLUDED.department,
         title = EXCLUDED.title,
+        avatar_url = EXCLUDED.avatar_url,
         is_active = true
-    `, [member.id, member.name, member.email, hash, member.role, member.department, member.title]);
+    `, [member.id, member.name, member.email, hash, member.role, member.department, member.title, member.avatar_url]);
 
     console.log(`\n  Name:     ${member.name}`);
     console.log(`  Email:    ${member.email}`);

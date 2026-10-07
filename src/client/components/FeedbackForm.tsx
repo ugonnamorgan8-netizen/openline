@@ -16,6 +16,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import chroAvatar from '../assets/chro-avatar.png';
+import cooAvatar from '../assets/coo-avatar.png';
 
 
 interface FeedbackFormProps {
@@ -475,7 +477,7 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({
               selectedCategory.assigned_reviewers.map((rev: any) => (
                 <div key={rev.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <img
-                    src={rev.avatar_url}
+                    src={rev.avatar_url || (rev.id === 'rev-morgan-ugonna' || rev.title?.toLowerCase().includes('coo') ? cooAvatar : chroAvatar)}
                     alt={rev.name}
                     style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                   />

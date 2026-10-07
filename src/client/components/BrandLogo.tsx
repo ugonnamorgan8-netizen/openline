@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import dcreativsLogo from "../assets/dcreativs-logo.png";
 
 interface BrandLogoProps {
@@ -39,7 +39,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
       style={{ cursor: onClick ? "pointer" : "default", alignItems: "center", ...style }}
     >
-      {/* Exact D'creativs logo image */}
       <img
         src={dcreativsLogo}
         alt="D'creativs logo"
@@ -49,7 +48,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           objectFit: "contain",
           flexShrink: 0,
           display: "block",
-          filter: isLight ? "brightness(0) invert(1)" : "none",
+          borderRadius: "6px",
         }}
       />
 

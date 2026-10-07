@@ -27,6 +27,17 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { changeReviewerPassword } from '../api.js';
+import chroAvatar from '../assets/chro-avatar.png';
+import cooAvatar from '../assets/coo-avatar.png';
+
+const getAvatarUrl = (avatarUrl?: string, revId?: string, title?: string, name?: string) => {
+  if (avatarUrl && avatarUrl.trim() !== '') return avatarUrl;
+  const isChro = revId === 'rev-akparanta-estella' || title?.toUpperCase().includes('CHRO') || name?.toLowerCase().includes('estella');
+  if (isChro) return chroAvatar;
+  const isCoo = revId === 'rev-morgan-ugonna' || title?.toUpperCase().includes('COO') || name?.toLowerCase().includes('morgan');
+  if (isCoo) return cooAvatar;
+  return chroAvatar;
+};
 
 interface ReviewerWorkspaceProps {
   reviewer: any;
@@ -406,7 +417,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
         <div style={{ borderTop: '1px solid #1e293b', paddingTop: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <img
-              src={reviewer.avatar_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&fit=crop&q=80'}
+              src={getAvatarUrl(reviewer.avatar_url, reviewer.id, reviewer.title, reviewer.name)}
               alt={reviewer.name}
               style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }}
             />
@@ -618,7 +629,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
                   </h4>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
                     <img
-                      src={reviewer.avatar_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&fit=crop&q=80'}
+                      src={getAvatarUrl(reviewer.avatar_url, reviewer.id, reviewer.title, reviewer.name)}
                       alt={reviewer.name}
                       style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
                     />
@@ -955,7 +966,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
                     {formatTimeAgo(item.created_at)}
                   </span>
                   <img
-                    src={item.assigned_reviewer_avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&fit=crop&q=80'}
+                    src={getAvatarUrl(item.assigned_reviewer_avatar, item.assigned_reviewer_id, undefined, item.assigned_reviewer_name)}
                     alt={item.assigned_reviewer_name || 'Reviewer'}
                     style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
                   />
